@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Irisa's Archives</title>
+<meta name="description" content="A personal library of books, CDs, tapes, vinyl and films.">
+<meta name="theme-color" content="#F7F0E1">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Irisa's Archives">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#FBF5E9; --cream-2:#F4EAD5; --cream-3:#EADFC6;
+  --lilac:#B79BE0; --lilac-2:#9C7BD0; --lilac-deep:#6E4FA8; --lilac-pale:#EBE1F8; --lilac-mist:#F5EFFB;
+  --ink:#3B2F4F; --ink-soft:#6B5F7E; --gold:#C8A55F; --rose:#D98FB0; --ok:#5E8F6E; --warn:#B8823A;
+  --radius:18px; --shadow:0 6px 24px rgba(110,79,168,.13); --shadow-sm:0 2px 10px rgba(110,79,168,.12);
+  --title:'IM Fell English SC','IM Fell English',Georgia,serif;
+  --body:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body);font-size:19px;line-height:1.35}
+body{min-height:100vh;background:
+  radial-gradient(1200px 600px at 10% -10%,var(--lilac-pale) 0,transparent 60%),
+  radial-gradient(900px 500px at 100% 0,#F1E6FA 0,transparent 55%),
+  radial-gradient(900px 600px at 50% 120%,#EFE3F7 0,transparent 60%),var(--cream);
+  background-attachment:fixed;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+svg.i{width:1em;height:1em;fill:currentColor;vertical-align:-.12em}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--title);font-weight:400;letter-spacing:.03em;margin:0;color:var(--lilac-deep)}
+
+/* sky */
+#sky{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#sky .s{position:absolute;color:var(--lilac);opacity:.0;animation:twinkle var(--d,5s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+#sky .s.g{color:var(--gold)}
+@keyframes twinkle{0%,100%{opacity:.05;transform:scale(.7) rotate(0)}50%{opacity:.6;transform:scale(1.1) rotate(20deg)}}
+.vine{position:fixed;z-index:0;pointer-events:none;color:var(--lilac);opacity:.22}
+.vine.tl{top:-6px;left:-10px;width:170px}.vine.br{bottom:60px;right:-14px;width:190px;transform:rotate(180deg)}
+
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 16px}
+header.top{padding:calc(18px + env(safe-area-inset-top)) 0 6px;text-align:center}
+header.top .brand{display:inline-flex;align-items:center;gap:12px}
+header.top h1{font-size:clamp(28px,7vw,42px);line-height:1}
+header.top .fl{color:var(--lilac);width:26px;height:26px;animation:spin 40s linear infinite}
+header.top .fl.r{animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+header.top .tag{font-style:italic;color:var(--ink-soft);font-size:17px;margin-top:2px}
+.divider{display:flex;align-items:center;gap:10px;color:var(--lilac);margin:10px auto 14px;max-width:340px}
+.divider:before,.divider:after{content:"";height:1px;flex:1;background:linear-gradient(90deg,transparent,var(--lilac),transparent)}
+.divider svg{width:14px;height:14px}
+
+/* nav */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(251,245,233,0),rgba(251,245,233,.96) 30%)}
+nav.tabs .in{display:flex;gap:4px;background:rgba(255,252,246,.94);border:1px solid var(--cream-3);border-radius:999px;padding:5px;box-shadow:var(--shadow);width:min(520px,100%)}
+nav.tabs button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px 4px 7px;font-family:var(--title);font-size:15px;letter-spacing:.03em;color:var(--ink-soft);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+nav.tabs button svg{width:20px;height:20px}
+nav.tabs button.on{background:var(--lilac-pale);color:var(--lilac-deep);box-shadow:inset 0 0 0 1px var(--lilac)}
+nav.tabs button.shopb{background:linear-gradient(135deg,var(--lilac),var(--lilac-2));color:#fff}
+nav.tabs button.shopb.on{box-shadow:0 0 0 2px var(--cream),0 0 0 4px var(--lilac-2)}
+
+/* generic */
+.card{background:rgba(255,252,246,.88);border:1px solid var(--cream-3);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.btn{border:1px solid var(--lilac);background:#fff;color:var(--lilac-deep);border-radius:999px;padding:9px 18px;font-weight:600;cursor:pointer;font-size:18px;display:inline-flex;align-items:center;gap:8px;transition:transform .12s,box-shadow .12s}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(135deg,var(--lilac),var(--lilac-2));border-color:var(--lilac-2);color:#fff;box-shadow:0 4px 14px rgba(156,123,208,.4)}
+.btn.sm{padding:5px 13px;font-size:16px}
+.btn.ghost{background:transparent}
+.btn.danger{color:#A6475F;border-color:#D9A3B3}
+.btn[disabled]{opacity:.5}
+input[type=text],input[type=search],input[type=number],input[type=password],select,textarea{width:100%;background:#fffdf8;border:1px solid var(--cream-3);border-radius:14px;padding:11px 14px;font-size:19px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--lilac);box-shadow:0 0 0 3px var(--lilac-pale)}
+label.f{display:block;font-family:var(--title);font-size:14px;letter-spacing:.06em;color:var(--lilac-deep);margin:12px 0 4px}
+.hint{color:var(--ink-soft);font-style:italic;font-size:16px}
+.pill{display:inline-block;font-family:var(--title);font-size:13px;letter-spacing:.05em;padding:2px 10px;border-radius:999px;background:var(--lilac-pale);color:var(--lilac-deep);border:1px solid var(--lilac)}
+.pill.book{background:#F6ECD9;border-color:#D9BF8A;color:#7A5B1E}
+.pill.cd{background:#E4EFF7;border-color:#A9C7DE;color:#3B6484}
+.pill.tape{background:#F9E4EC;border-color:#DFA9BF;color:#8B3A5B}
+.pill.vinyl{background:var(--lilac-pale);border-color:var(--lilac);color:var(--lilac-deep)}
+.pill.movie{background:#E4F1E8;border-color:#A6CDB1;color:#3E7250}
+.banner-old{background:#FFF6DC;border:1px solid #E6CF8A;color:#7A5B1E;border-radius:14px;padding:10px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* shelf */
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--cream-3);background:rgba(255,252,246,.9);border-radius:999px;padding:5px 14px;font-family:var(--title);font-size:15px;color:var(--ink-soft);cursor:pointer}
+.chip b{font-family:var(--body);font-weight:600;margin-left:4px;color:var(--lilac-deep)}
+.chip.on{background:var(--lilac);border-color:var(--lilac-2);color:#fff}.chip.on b{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:16px;margin-top:8px}
+.item{cursor:pointer;text-align:left;background:rgba(255,252,246,.9);border:1px solid var(--cream-3);border-radius:16px;padding:9px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s;border-width:1px}
+.item:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.cover{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:linear-gradient(145deg,var(--lilac-pale),#F7E9F1);display:flex;align-items:center;justify-content:center}
+.cover.book{aspect-ratio:2/3}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.cover .ph{font-family:var(--title);font-size:52px;color:var(--lilac);opacity:.8}
+.cover .ph-fl{position:absolute;right:-12px;bottom:-12px;width:64px;height:64px;color:var(--lilac);opacity:.25}
+.item .t{font-size:19px;font-weight:600;margin:8px 2px 0;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.item .c{font-size:16px;color:var(--ink-soft);margin:1px 2px 6px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty{text-align:center;padding:36px 12px;color:var(--ink-soft)}
+.empty svg{width:60px;height:60px;color:var(--lilac);opacity:.7}
+.empty h3{margin:8px 0 4px}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar select{width:auto}
+
+/* shop */
+.hero{text-align:center;padding:6px 0 10px}
+.hero h2{font-size:26px}
+.shopbox{display:flex;gap:8px}
+.bigscan{width:100%;margin-top:12px;padding:16px;font-size:22px;justify-content:center}
+.verdict{border-radius:22px;padding:20px 18px;text-align:center;border:1.5px solid;margin:14px 0;position:relative;overflow:hidden}
+.verdict h2{font-size:27px;color:inherit;margin-bottom:4px}
+.verdict.owned{background:#F8E7EE;border-color:var(--rose);color:#8B3A5B}
+.verdict.other{background:#FFF3D9;border-color:#E2C070;color:#7A5B1E}
+.verdict.wish{background:var(--lilac-pale);border-color:var(--lilac);color:var(--lilac-deep)}
+.verdict.new{background:#E7F3EA;border-color:#8FC3A0;color:#2F6B45}
+.verdict .big{width:44px;height:44px;margin-bottom:4px}
+.verdict p{margin:2px 0;font-size:19px;color:var(--ink)}
+.cand{display:flex;gap:12px;padding:12px;border:1px solid var(--cream-3);border-radius:16px;background:rgba(255,252,246,.9);margin-top:10px}
+.cand .cover{width:78px;flex:none;aspect-ratio:1/1}.cand .cover.book{aspect-ratio:2/3}
+.cand .cover .ph{font-size:30px}
+.cand .m{flex:1;min-width:0}
+.cand .m b{font-size:20px;line-height:1.15;display:block}
+.cand .m .s{color:var(--ink-soft);font-style:italic}
+.cand .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.cand select{width:auto;padding:5px 10px;font-size:16px;border-radius:999px}
+.status{margin-top:4px;font-size:16px;font-weight:600}
+.status.owned{color:#A6475F}.status.other{color:var(--warn)}.status.wish{color:var(--lilac-deep)}.status.new{color:var(--ok)}
+.sec{font-family:var(--title);font-size:18px;color:var(--lilac-deep);margin:20px 2px 2px;letter-spacing:.05em}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid var(--lilac-pale);border-top-color:var(--lilac-2);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px}
+
+/* modal / scanner */
+#modal{position:fixed;inset:0;z-index:50;display:none;background:rgba(59,47,79,.45);backdrop-filter:blur(3px);overflow-y:auto;padding:16px}
+#modal.on{display:block}
+#modal .sheet{position:relative;max-width:560px;margin:4vh auto;background:var(--cream);border:1px solid var(--cream-3);border-radius:24px;padding:20px 18px 18px;box-shadow:0 20px 60px rgba(59,47,79,.35)}
+#modal h2{font-size:26px;text-align:center;margin-bottom:2px}
+#modal .x{position:absolute;right:12px;top:10px;border:0;background:transparent;font-size:30px;line-height:1;color:var(--ink-soft);cursor:pointer}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.picks .cand{margin-top:8px;cursor:pointer}
+#scan{position:fixed;inset:0;z-index:80;background:#1d1528;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#scan.on{display:flex}
+#scan video{width:100%;max-width:640px;max-height:70vh;object-fit:cover;border-radius:20px}
+#scan .frame{position:absolute;width:min(76vw,420px);height:min(38vw,210px);border:2px solid var(--lilac);border-radius:18px;box-shadow:0 0 0 999px rgba(29,21,40,.55),0 0 26px var(--lilac) inset;pointer-events:none}
+#scan p{margin:16px 20px 8px;text-align:center;font-size:20px}
+#toast{position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);z-index:90;background:var(--ink);color:#fff;border-radius:999px;padding:10px 20px;opacity:0;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--cream-3)}
+.kv:last-child{border:0}
+details.card summary{cursor:pointer;font-family:var(--title);color:var(--lilac-deep);font-size:19px}
+@media (prefers-reduced-motion:reduce){#sky .s,header.top .fl{animation:none}#sky .s{opacity:.3}}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- icon sprites -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 0C12.9 8.2 15.8 11.1 24 12 15.8 12.9 12.9 15.8 12 24 11.1 15.8 8.2 12.9 0 12 8.2 11.1 11.1 8.2 12 0Z"/></symbol>
+    <symbol id="i-flower" viewBox="0 0 40 40"><g><ellipse cx="20" cy="9" rx="5.6" ry="8.2"/><ellipse cx="20" cy="9" rx="5.6" ry="8.2" transform="rotate(72 20 20)"/><ellipse cx="20" cy="9" rx="5.6" ry="8.2" transform="rotate(144 20 20)"/><ellipse cx="20" cy="9" rx="5.6" ry="8.2" transform="rotate(216 20 20)"/><ellipse cx="20" cy="9" rx="5.6" ry="8.2" transform="rotate(288 20 20)"/></g><circle cx="20" cy="20" r="4.2" fill="#FBF5E9"/><circle cx="20" cy="20" r="2" fill="#C8A55F"/></symbol>
+    <symbol id="i-shelf" viewBox="0 0 24 24"><path d="M4 3h3v16H4zM8.5 5h3v14h-3zM13 3h3v16h-3zM17.4 6.2l2.9-.8 3 12.3-2.9.8zM2 20.5h21V22H2z"/></symbol>
+    <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 4h4v2H5v2H3zM17 4h4v4h-2V6h-2zM3 16h2v2h2v2H3zM19 16h2v4h-4v-2h2zM6 11h1.6v2H6zM9 8h1v8H9zM12 8h2v8h-2zM15.5 8H17v8h-1.5z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21s-8.5-5.3-8.5-11.2C3.5 6.6 5.8 4.5 8.4 4.5c1.6 0 2.9.8 3.6 2 .7-1.2 2-2 3.6-2 2.600 0 4.900 2.100 4.900 5.300C20.500 15.700 12 21 12 21z"/></symbol>
+    <symbol id="i-cog" viewBox="0 0 24 24"><path d="M12 8.500a3.500 3.500 0 100 7 3.500 3.500 0 000-7zm8.600 4.300l1.700 1.300-1.900 3.300-2-.8c-.5.4-1.100.8-1.700 1l-.3 2.100h-3.800l-.3-2.100c-.6-.3-1.200-.6-1.700-1l-2 .8-1.900-3.300 1.700-1.300a7 7 0 010-1.600L5.700 9.900l1.900-3.300 2 .8c.5-.4 1.100-.8 1.700-1l.3-2.100h3.800l.3 2.100c.6.300 1.200.6 1.700 1l2-.8 1.900 3.300-1.700 1.300c.1.500.1 1.100 0 1.600z" transform="translate(-.6 0) scale(.96)"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z"/></symbol>
+    <symbol id="vine" viewBox="0 0 200 200"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M-5 30C50 40 70 80 90 130S130 190 200 195"/><path d="M40 45c8-14 22-14 30-8M62 78c14-8 26-2 30 8M84 118c10-12 24-10 32-2"/></g><g fill="currentColor"><use href="#i-flower" x="18" y="8" width="34" height="34"/><use href="#i-flower" x="70" y="96" width="26" height="26"/><use href="#i-flower" x="120" y="160" width="30" height="30"/><use href="#i-spark" x="96" y="40" width="14" height="14"/><use href="#i-spark" x="40" y="110" width="10" height="10"/></g></symbol>
+  </defs>
+</svg>
+
+<div id="sky"></div>
+<svg class="vine tl" viewBox="0 0 200 200" aria-hidden="true"><use href="#vine"/></svg>
+<svg class="vine br" viewBox="0 0 200 200" aria-hidden="true"><use href="#vine"/></svg>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg class="fl i" viewBox="0 0 40 40" fill="currentColor"><use href="#i-flower"/></svg>
+      <h1>Irisa's Archives</h1>
+      <svg class="fl r i" viewBox="0 0 40 40" fill="currentColor"><use href="#i-flower"/></svg>
+    </div>
+    <div class="tag">books, records &amp; reveries</div>
+    <div class="divider"><svg class="i" viewBox="0 0 24 24"><use href="#i-spark"/></svg></div>
+  </header>
+  <main id="view"></main>
+</div>
+
+<nav class="tabs"><div class="in">
+  <button data-tab="shelf"><svg class="i" viewBox="0 0 24 24"><use href="#i-shelf"/></svg>Shelf</button>
+  <button data-tab="shop" class="shopb"><svg class="i" viewBox="0 0 24 24"><use href="#i-scan"/></svg>Shop</button>
+  <button data-tab="wish"><svg class="i" viewBox="0 0 24 24"><use href="#i-heart"/></svg>Wishes</button>
+  <button data-tab="more"><svg class="i" viewBox="0 0 24 24"><use href="#i-cog"/></svg>More</button>
+</div></nav>
+
+<div id="modal"></div>
+<div id="scan"><video playsinline muted></video><div class="frame"></div><p>Point at the barcode</p><button class="btn" data-action="scan-close">Cancel</button></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+const ico = (n, cls='') => `<svg class="i ${cls}" viewBox="0 0 ${n==='flower'?40:24} ${n==='flower'?40:24}"><use href="#i-${n}"/></svg>`;
+const FORMATS = { book:'Book', cd:'CD', tape:'Tape', vinyl:'Vinyl', movie:'Film' };
+const fmtPill = f => `<span class="pill ${esc(f)}">${esc(FORMATS[f] || f)}</span>`;
+let toastT;
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
+function jfetch(url, ms=9000, opts={}){
+  const ctl = new AbortController(); const t = setTimeout(()=>ctl.abort(), ms);
+  return fetch(url, {...opts, signal:ctl.signal}).then(r => { clearTimeout(t); if(!r.ok) throw new Error(r.status); return r.json(); }).catch(e => { clearTimeout(t); throw e; });
+}
+const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+/* ---------- storage (IndexedDB, in-memory fallback) ---------- */
+let db = null, memOnly = false;
+function openDB(){
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open('lilac-archive', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('items', { keyPath:'id' });
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch { res(null); }
+  });
+}
+const store = m => db.transaction('items', m).objectStore('items');
+const req2p = r => new Promise((ok, no) => { r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+const dbAll = () => db ? req2p(store('readonly').getAll()) : Promise.resolve([]);
+const dbPut = it => db ? req2p(store('readwrite').put(it)) : Promise.resolve();
+const dbDel = id => db ? req2p(store('readwrite').delete(id)) : Promise.resolve();
+const dbClear = () => db ? req2p(store('readwrite').clear()) : Promise.resolve();
+
+let items = [];
+const state = { tab:'shelf', filter:'all', q:'', sort:'added', shopQ:'', shop:null, cands:[] };
+
+async function saveItem(it){ it.updatedAt = Date.now(); const i = items.findIndex(x => x.id === it.id); if(i>=0) items[i]=it; else items.push(it); await dbPut(it); }
+async function removeItem(id){ items = items.filter(x => x.id !== id); await dbDel(id); }
+
+/* ---------- matching / duplicate logic ---------- */
+function norm(s){
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\(.*?\)|\[.*?\]/g,' ').replace(/&/g,' and ')
+    .replace(/\b(remastered|remaster|deluxe|edition|expanded|anniversary|original soundtrack|ost)\b/g,' ')
+    .replace(/[^a-z0-9]+/g,' ').trim().replace(/^(the|a|an) /,'').replace(/\s+/g,' ');
+}
+const bcn = b => String(b || '').replace(/\D/g,'').replace(/^0+/,'');
+function findMatches(c, excludeId){
+  const out = [], cb = c.barcode ? bcn(c.barcode) : '', t = norm(c.title), a = norm(c.creator);
+  for(const it of items){
+    if(it.id === excludeId) continue;
+    let kind = null;
+    if(cb && it.barcode && bcn(it.barcode) === cb) kind = 'exact';
+    else if(t && norm(it.title) === t){
+      const ia = norm(it.creator);
+      if(!a || !ia || ia === a || ia.includes(a) || a.includes(ia)) kind = 'title';
+    }
+    if(kind) out.push({ it, kind });
+  }
+  return out;
+}
+function verdict(c){
+  const m = findMatches(c);
+  const owned = m.filter(x => x.it.status === 'owned'), wish = m.filter(x => x.it.status === 'wishlist');
+  if(owned.length){
+    const same = owned.some(x => x.kind === 'exact' || !c.format || x.it.format === c.format);
+    return { state: same ? 'owned' : 'other', owned, wish, formats:[...new Set(owned.map(x => x.it.format))] };
+  }
+  if(wish.length) return { state:'wish', owned, wish, formats:[] };
+  return { state:'new', owned, wish, formats:[] };
+}
+const fmtList = arr => arr.map(f => FORMATS[f] || f).join(', ');
+
+/* ---------- lookups (free public databases) ---------- */
+const mbFormat = media => {
+  const f = (media && media[0] && media[0].format || '').toLowerCase();
+  if(f.includes('vinyl')) return 'vinyl'; if(f.includes('cassette')) return 'tape'; if(f.includes('cd')) return 'cd'; return null;
+};
+async function lookupBarcode(code){
+  const digits = String(code).replace(/\D/g,''); const out = [];
+  const isBook = /^(978|979)\d{10}$/.test(digits) || /^\d{9}[\dXx]$/.test(String(code).replace(/[^\dXx]/g,''));
+  const jobs = [];
+  if(isBook){
+    jobs.push(jfetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${digits}&format=json&jscmd=data`).then(d => {
+      const b = d['ISBN:' + digits]; if(!b) return;
+      out.push({ format:'book', title:b.title, creator:(b.authors||[]).map(a=>a.name).join(', '), year:(String(b.publish_date||'').match(/\d{4}/)||[''])[0], barcode:digits, cover:(b.cover&&(b.cover.medium||b.cover.large))||'', src:'Open Library' });
+    }).catch(()=>{}));
+  } else {
+    const alt = digits.length === 12 ? '0'+digits : (digits.length === 13 && digits[0]==='0' ? digits.slice(1) : '');
+    const q = alt ? `barcode:(${digits} OR ${alt})` : `barcode:${digits}`;
+    jobs.push(jfetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&fmt=json&limit=3`).then(d => {
+      (d.releases||[]).slice(0,2).forEach(r => out.push({ format:mbFormat(r.media), title:r.title, creator:(r['artist-credit']||[]).map(a=>a.name).join(', '), year:(r.date||'').slice(0,4), barcode:digits, cover:`https://coverartarchive.org/release/${r.id}/front-250`, src:'MusicBrainz' }));
+    }).catch(()=>{}));
+    jobs.push(jfetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${digits}`).then(d => {
+      (d.items||[]).slice(0,1).forEach(p => {
+        const cat = (p.category||'').toLowerCase();
+        out.push({ format: /movie|dvd|blu|video/.test(cat) ? 'movie' : (/book/.test(cat) ? 'book' : null), title:p.title, creator:p.brand||'', year:'', barcode:digits, cover:(p.images||[])[0]||'', src:'UPC database' });
+      });
+    }).catch(()=>{}));
+  }
+  await Promise.all(jobs);
+  return out;
+}
+async function searchText(q, only){
+  const out = [], jobs = [], want = f => !only || only === 'all' || only === f;
+  if(want('book')) jobs.push(jfetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=5&fields=title,author_name,first_publish_year,cover_i,isbn`).then(d => {
+    (d.docs||[]).forEach(b => out.push({ format:'book', title:b.title, creator:(b.author_name||[]).slice(0,2).join(', '), year:b.first_publish_year||'', barcode:(b.isbn||[]).find(i=>i.length===13)||'', cover:b.cover_i?`https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`:'', src:'Open Library' }));
+  }).catch(()=>{}));
+  if(['all','cd','vinyl','tape'].includes(only||'all')) jobs.push(jfetch(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&fmt=json&limit=6`).then(d => {
+    const seen = new Set();
+    (d.releases||[]).forEach(r => {
+      const k = norm(r.title)+'|'+norm((r['artist-credit']||[]).map(a=>a.name).join(' '));
+      if(seen.has(k)) return; seen.add(k);
+      out.push({ format:mbFormat(r.media), title:r.title, creator:(r['artist-credit']||[]).map(a=>a.name).join(', '), year:(r.date||'').slice(0,4), barcode:r.barcode||'', cover:`https://coverartarchive.org/release/${r.id}/front-250`, src:'MusicBrainz' });
+    });
+  }).catch(()=>{}));
+  if(want('movie')) jobs.push(jfetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=movie&limit=5`).then(d => {
+    (d.results||[]).forEach(m => out.push({ format:'movie', title:m.trackName, creator:m.artistName||'', year:(m.releaseDate||'').slice(0,4), barcode:'', cover:(m.artworkUrl100||'').replace('100x100','300x300'), src:'iTunes' }));
+  }).catch(()=>{}));
+  await Promise.all(jobs);
+  return out;
+}
+
+/* ---------- camera scanning ---------- */
+let scanStop = null, zxLoading = null;
+function loadZX(){
+  if(window.ZXing) return Promise.resolve();
+  if(zxLoading) return zxLoading;
+  return zxLoading = new Promise((ok, no) => {
+    const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    s.onload = ok; s.onerror = () => no(new Error('scanner library failed to load')); document.head.appendChild(s);
+  });
+}
+async function openScanner(onCode){
+  const box = $('#scan'), video = $('video', box);
+  box.classList.add('on'); let done = false, stream = null, timer = null, reader = null;
+  const finish = code => { if(done) return; done = true; stop(); if(navigator.vibrate) navigator.vibrate(60); if(code) onCode(code); };
+  const stop = () => { clearInterval(timer); if(reader){ try{ reader.reset(); }catch{} } if(stream) stream.getTracks().forEach(t => t.stop()); video.srcObject = null; box.classList.remove('on'); scanStop = null; };
+  scanStop = () => { done = true; stop(); };
+  try{
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Camera needs a secure (https) page.');
+    let native = false;
+    if('BarcodeDetector' in window){
+      try { const sup = await BarcodeDetector.getSupportedFormats(); native = sup.includes('ean_13'); } catch {}
+    }
+    if(native){
+      const det = new BarcodeDetector({ formats:['ean_13','ean_8','upc_a','upc_e'] });
+      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+      video.srcObject = stream; await video.play();
+      timer = setInterval(async () => { try { const r = await det.detect(video); if(r.length) finish(r[0].rawValue); } catch {} }, 250);
+    } else {
+      await loadZX();
+      const hints = new Map(); hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.EAN_13, ZXing.BarcodeFormat.EAN_8, ZXing.BarcodeFormat.UPC_A, ZXing.BarcodeFormat.UPC_E]);
+      reader = new ZXing.BrowserMultiFormatReader(hints);
+      reader.decodeFromConstraints({ video:{ facingMode:'environment' } }, video, (res) => { if(res) finish(res.getText()); }).catch(e => { toast('Camera unavailable: ' + (e.message || e)); scanStop && scanStop(); });
+    }
+  }catch(e){ toast(e.name === 'NotAllowedError' ? 'Camera permission was denied.' : (e.message || 'Could not start the camera.')); scanStop && scanStop(); }
+}
+
+/* USB / Bluetooth scanners type digits fast, then press Enter */
+let kbBuf = '', kbLast = 0;
+document.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(['input','textarea','select'].includes(tag) || e.ctrlKey || e.metaKey || e.altKey) return;
+  const now = Date.now(); if(now - kbLast > 120) kbBuf = ''; kbLast = now;
+  if(e.key === 'Enter'){ if(/^\d{8,14}$/.test(kbBuf)){ e.preventDefault(); handleScan(kbBuf); } kbBuf = ''; }
+  else if(/^[0-9]$/.test(e.key)) kbBuf += e.key;
+});
+function handleScan(code){
+  if($('#modal').classList.contains('on')){ const f = $('#f-barcode'); if(f){ f.value = code; toast('Barcode captured'); return; } }
+  setTab('shop'); state.shopQ = code; $('#shopq').value = code; runShop();
+}
+
+/* ---------- sky ---------- */
+function buildSky(){
+  const sky = $('#sky'); let h = '';
+  for(let i=0;i<42;i++){
+    const sz = 6 + Math.random()*16, gold = Math.random() < .25;
+    h += `<svg class="s ${gold?'g':''}" style="left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;--d:${3+Math.random()*6}s;--dl:${-Math.random()*8}s" viewBox="0 0 24 24" fill="currentColor"><use href="#i-${Math.random()<.14?'flower':'spark'}"/></svg>`;
+  }
+  sky.innerHTML = h;
+}
+
+/* ---------- views ---------- */
+const view = $('#view');
+function setTab(t){
+  state.tab = t; $$('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ({ shelf:renderShelf, shop:renderShop, wish:renderWish, more:renderMore })[t](); window.scrollTo(0,0);
+}
+function coverHTML(it){
+  const f = it.format || '';
+  const img = it.cover ? `<img src="${esc(it.cover)}" alt="" loading="lazy" onerror="this.remove()">` : '';
+  return `<div class="cover ${f==='book'?'book':''}"><svg class="ph-fl" viewBox="0 0 40 40" fill="currentColor"><use href="#i-flower"/></svg><span class="ph">${esc((it.title||'?').trim().charAt(0).toUpperCase())}</span>${img}</div>`;
+}
+function daysSinceBackup(){ const t = lsGet('lilac-backup', 0); return t ? Math.floor((Date.now()-t)/864e5) : null; }
+
+function renderShelf(){
+  const owned = items.filter(i => i.status === 'owned');
+  const counts = { all: owned.length }; Object.keys(FORMATS).forEach(f => counts[f] = owned.filter(i => i.format === f).length);
+  const d = daysSinceBackup();
+  const warn = owned.length && (d === null || d >= 14) ? `<div class="banner-old"><span class="grow">${d===null ? 'Your library has never been backed up.' : `Last backup was ${d} days ago.`} Your collection lives in this browser, so keep a copy safe.</span><button class="btn sm" data-action="goto-more">Back up</button></div>` : '';
+  view.innerHTML = `${warn}
+    <div class="row" style="margin-bottom:8px"><div class="grow"><input type="search" id="shelfq" placeholder="Search your shelf…" value="${esc(state.q)}"></div><button class="btn pri" data-action="add">${ico('plus')} Add</button></div>
+    <div class="chips">${['all',...Object.keys(FORMATS)].map(f => `<button class="chip ${state.filter===f?'on':''}" data-filter="${f}">${f==='all'?'Everything':FORMATS[f]}<b>${counts[f]}</b></button>`).join('')}</div>
+    <div class="toolbar"><span class="hint">Sort</span><select id="sortsel" style="max-width:190px">${[['added','Recently added'],['title','Title A–Z'],['creator','Artist / author'],['year','Year']].map(([v,l]) => `<option value="${v}" ${state.sort===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div id="grid"></div>`;
+  fillGrid();
+}
+function fillGrid(){
+  const q = norm(state.q);
+  let list = items.filter(i => i.status === 'owned' && (state.filter === 'all' || i.format === state.filter) && (!q || norm(i.title + ' ' + i.creator + ' ' + (i.barcode||'') + ' ' + (i.edition||'')).includes(q) || (i.barcode||'').includes(state.q.trim())));
+  const s = state.sort;
+  list.sort((a,b) => s==='title' ? norm(a.title).localeCompare(norm(b.title)) : s==='creator' ? norm(a.creator).localeCompare(norm(b.creator)) : s==='year' ? String(b.year||'').localeCompare(String(a.year||'')) : (b.addedAt||0)-(a.addedAt||0));
+  $('#grid').innerHTML = list.length ? `<div class="grid">${list.map(it => `<button class="item" data-action="edit" data-id="${it.id}">${coverHTML(it)}<div class="t">${esc(it.title)}</div><div class="c">${esc(it.creator||'—')}${it.year?' · '+esc(it.year):''}</div>${fmtPill(it.format)}</button>`).join('')}</div>`
+    : `<div class="empty">${ico('flower')}<h3>${items.some(i=>i.status==='owned') ? 'Nothing matches' : 'Your shelf is waiting'}</h3><div>${items.some(i=>i.status==='owned') ? 'Try a different search or filter.' : 'Add your first treasure with a scan or a search.'}</div></div>`;
+}
+
+function renderShop(){
+  view.innerHTML = `<div class="hero"><h2>Do I own this?</h2><div class="hint">Scan a barcode or type a title, artist, or number.</div></div>
+    <div class="shopbox"><input type="search" id="shopq" placeholder="Title, artist, or barcode…" value="${esc(state.shopQ)}" enterkeyhint="search"><button class="btn pri" data-action="shop-go">Check</button></div>
+    <button class="btn pri bigscan" data-action="shop-scan">${ico('scan')} Scan barcode</button>
+    <div id="shopres"></div>`;
+  paintShop();
+}
+async function runShop(){
+  const q = state.shopQ.trim(); if(!q) return;
+  state.shop = { q, loading:true }; state.cands = []; paintShop();
+  const isCode = /^[\d\s-]{8,16}$/.test(q) && q.replace(/\D/g,'').length >= 8;
+  let cands = [];
+  if(isCode){
+    const code = q.replace(/\D/g,'');
+    const local = items.filter(i => i.barcode && bcn(i.barcode) === bcn(code));
+    cands = await lookupBarcode(code);
+    if(!cands.length){
+      if(local.length) cands = local.map(i => ({ format:i.format, title:i.title, creator:i.creator, year:i.year, barcode:i.barcode, cover:i.cover, src:'Your library' }));
+      else cands = [];
+    }
+    state.shop = { q, code, cands, unknown: !cands.length };
+  } else {
+    cands = await searchText(q);
+    state.shop = { q, cands, text:true, local: items.filter(i => norm(i.title+' '+i.creator).includes(norm(q))) };
+  }
+  state.cands = cands; paintShop();
+}
+function candHTML(c, idx){
+  const v = verdict(c);
+  const label = { owned:`You own this${v.formats.length?' ('+fmtList(v.formats)+')':''}`, other:`You own it as ${fmtList(v.formats)}`, wish:'On your wishlist', new:'Not in your library' }[v.state];
+  const fmtSel = c.format ? '' : `<select data-fmt="${idx}">${Object.entries(FORMATS).filter(([k])=>k!=='book').map(([k,l])=>`<option value="${k}" ${k==='cd'?'selected':''}>${l}</option>`).join('')}</select>`;
+  const acts = v.state === 'owned' ? '' : `${fmtSel}${v.state==='wish' ? '' : `<button class="btn sm" data-action="cand-add" data-idx="${idx}" data-st="wishlist">${ico('heart')} Wishlist</button>`}<button class="btn sm pri" data-action="cand-add" data-idx="${idx}" data-st="owned">${ico('plus')} Own it</button>`;
+  return `<div class="cand">${coverHTML(c)}<div class="m"><b>${esc(c.title)}</b><div class="s">${esc(c.creator||'')}${c.year?' · '+esc(c.year):''}</div><div style="margin-top:3px">${c.format?fmtPill(c.format):''} <span class="hint" style="font-size:14px">${esc(c.src||'')}</span></div><div class="status ${v.state}">${label}</div>${acts?`<div class="acts">${acts}</div>`:''}</div></div>`;
+}
+function paintShop(){
+  const el = $('#shopres'); if(!el) return; const s = state.shop;
+  if(!s){ el.innerHTML = `<div class="empty">${ico('spark')}<div>Results will shimmer in here.</div></div>`; return; }
+  if(s.loading){ el.innerHTML = `<div class="empty"><span class="spin"></span> Searching the stars…</div>`; return; }
+  let html = '';
+  if(s.code){
+    const local = items.filter(i => i.barcode && bcn(i.barcode) === bcn(s.code));
+    const top = s.cands[0], v = top ? verdict(top) : null;
+    let st = local.length ? 'owned' : (v ? v.state : 'new');
+    const heads = { owned:['You already own this','Do not buy it twice.'], other:['You own it in another format', v ? fmtList(v.formats) : ''], wish:['It is on your wishlist','You have been wanting this one.'], new:['Not in your library','Go ahead, treat yourself.'] };
+    const ic = { owned:'heart', other:'spark', wish:'heart', new:'spark' }[st];
+    html += `<div class="verdict ${st}">${ico(ic,'big')}<h2>${heads[st][0]}</h2><p>${esc(heads[st][1])}</p>${top?`<p><b>${esc(top.title)}</b>${top.creator?' — '+esc(top.creator):''}</p>`:''}</div>`;
+    if(local.length) html += `<div class="sec">On your shelf</div>` + local.map(i => `<button class="item" style="display:flex;gap:12px;width:100%;margin-top:8px" data-action="edit" data-id="${i.id}"><div style="width:64px;flex:none">${coverHTML(i)}</div><div><div class="t" style="margin-top:0">${esc(i.title)}</div><div class="c">${esc(i.creator||'')}</div>${fmtPill(i.format)}</div></button>`).join('');
+    if(s.unknown && !local.length) html += `<div class="card" style="margin-top:8px"><p style="margin:0 0 10px">I could not identify barcode <b>${esc(s.code)}</b> online, so I can only say you have no item with this exact barcode. Search by title to check for other editions.</p><div class="row"><button class="btn sm" data-action="add-code" data-st="wishlist">${ico('heart')} Add to wishlist</button><button class="btn sm pri" data-action="add-code" data-st="owned">${ico('plus')} Add manually</button></div></div>`;
+    if(s.cands.length) html += `<div class="sec">${local.length?'Also found online':'Matches'}</div>` + s.cands.map((c,i) => candHTML(c,i)).join('');
+  } else {
+    const ownedLocal = (s.local||[]).filter(i => i.status==='owned'), wishLocal = (s.local||[]).filter(i => i.status==='wishlist');
+    if(ownedLocal.length) html += `<div class="verdict owned">${ico('heart','big')}<h2>You have ${ownedLocal.length===1?'this':'these'}</h2><p>${ownedLocal.map(i=>esc(i.title)+' ('+esc(FORMATS[i.format])+')').join(' · ')}</p></div>`;
+    else html += `<div class="verdict new">${ico('spark','big')}<h2>Nothing like it on your shelf</h2><p>No owned item matches “${esc(s.q)}”.</p></div>`;
+    if(wishLocal.length) html += `<p class="hint">On your wishlist: ${wishLocal.map(i=>esc(i.title)).join(', ')}</p>`;
+    if(s.cands.length) html += `<div class="sec">Catalog results</div>` + s.cands.map((c,i) => candHTML(c,i)).join('');
+    else html += `<p class="hint" style="text-align:center">No online results (you may be offline). Your shelf check above still works.</p>`;
+    html += `<div class="row" style="margin-top:14px;justify-content:center"><button class="btn sm" data-action="add-code" data-st="wishlist" data-title="${esc(s.q)}">${ico('heart')} Wishlist “${esc(s.q.slice(0,24))}”</button></div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderWish(){
+  const list = items.filter(i => i.status === 'wishlist').sort((a,b) => (b.addedAt||0)-(a.addedAt||0));
+  view.innerHTML = `<div class="hero"><h2>Wishlist</h2><div class="hint">Things you are hoping to find.</div></div>
+    <div class="row" style="justify-content:center;margin-bottom:6px"><button class="btn pri" data-action="add-wish">${ico('plus')} Add a wish</button></div>
+    ${list.length ? list.map(it => `<div class="cand">${coverHTML(it)}<div class="m"><b>${esc(it.title)}</b><div class="s">${esc(it.creator||'')}${it.year?' · '+esc(it.year):''}</div><div style="margin-top:3px">${fmtPill(it.format)}</div><div class="acts"><button class="btn sm pri" data-action="got" data-id="${it.id}">Got it</button><button class="btn sm" data-action="edit" data-id="${it.id}">Edit</button></div></div></div>`).join('')
+      : `<div class="empty">${ico('heart')}<h3>No wishes yet</h3><div>Save things from Shop mode while you browse.</div></div>`}`;
+}
+
+function renderMore(){
+  const own = items.filter(i => i.status==='owned').length, wish = items.length - own;
+  const cfg = lsGet('lilac-gh', { owner:'', repo:'', path:'lilac-archive-backup.json', token:'' });
+  const d = daysSinceBackup();
+  view.innerHTML = `
+  <div class="card"><h3>Your collection</h3>
+    <div class="kv"><span>Owned</span><b>${own}</b></div><div class="kv"><span>Wishlist</span><b>${wish}</b></div>
+    ${Object.keys(FORMATS).map(f => `<div class="kv"><span>${FORMATS[f]}</span><b>${items.filter(i=>i.status==='owned'&&i.format===f).length}</b></div>`).join('')}
+    <div class="kv"><span>Last backup</span><b>${d===null?'never':d===0?'today':d+' days ago'}</b></div>
+    ${memOnly ? '<p class="hint" style="color:#A6475F">Your browser is blocking storage (private mode?). Data will vanish when you close the page.</p>' : ''}
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Backup files</h3><p class="hint" style="margin-top:4px">Your library is stored in this browser. Save a copy now and then.</p>
+    <div class="row"><button class="btn" data-action="export">Download backup</button><button class="btn" data-action="import">Load backup file</button><button class="btn" data-action="csv">Export CSV</button></div><input type="file" id="importfile" accept=".json,application/json" hidden></div>
+  <div class="card" style="margin-top:14px"><h3>Back up to GitHub</h3>
+    <p class="hint" style="margin-top:4px">Saves your library as a file in a <b>private</b> repo of yours, so any device can restore it.</p>
+    <label class="f">GITHUB USERNAME</label><input type="text" id="gh-owner" value="${esc(cfg.owner)}" autocapitalize="off" autocomplete="off">
+    <label class="f">PRIVATE REPO NAME</label><input type="text" id="gh-repo" value="${esc(cfg.repo)}" autocapitalize="off" autocomplete="off" placeholder="my-library-data">
+    <label class="f">FILE PATH</label><input type="text" id="gh-path" value="${esc(cfg.path)}" autocapitalize="off">
+    <label class="f">ACCESS TOKEN</label><input type="password" id="gh-token" value="${esc(cfg.token)}" autocomplete="off" placeholder="fine-grained token, Contents: read &amp; write">
+    <div class="row" style="margin-top:12px"><button class="btn pri" data-action="gh-backup">Back up now</button><button class="btn" data-action="gh-restore">Restore</button></div>
+    <p class="hint" style="margin-bottom:0">The token stays on this device only. Limit it to just that one repo.</p></div>
+  <details class="card" style="margin-top:14px"><summary>Install on your phone</summary><p>Open this page in Safari (iPhone) or Chrome (Android), then choose <b>Add to Home Screen</b>. It will open like an app and work offline.</p></details>
+  <div class="card" style="margin-top:14px"><h3>Danger zone</h3><button class="btn danger" data-action="wipe">Erase everything on this device</button></div>`;
+}
+
+/* ---------- item form ---------- */
+function openForm(it, opts={}){
+  const isNew = !it || !it.id; const v = { id:'', format:'cd', title:'', creator:'', year:'', barcode:'', edition:'', notes:'', cover:'', status:'owned', ...(it||{}) };
+  $('#modal').innerHTML = `<div class="sheet"><button class="x" data-action="close">×</button>
+    <h2>${isNew ? (v.status==='wishlist' ? 'Add a wish' : 'Add to shelf') : 'Edit entry'}</h2><div class="divider"><svg class="i" viewBox="0 0 24 24"><use href="#i-spark"/></svg></div>
+    <label class="f" style="margin-top:0">BARCODE</label>
+    <div class="row" style="flex-wrap:nowrap"><input type="text" id="f-barcode" inputmode="numeric" value="${esc(v.barcode)}" placeholder="Scan or type"><button class="btn" data-action="form-scan">${ico('scan')}</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn sm" data-action="form-lookup">Look up details</button><span class="hint" id="lk-msg"></span></div>
+    <div id="picks" class="picks"></div>
+    <div class="two"><div><label class="f">FORMAT</label><select id="f-format">${Object.entries(FORMATS).map(([k,l])=>`<option value="${k}" ${v.format===k?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div><label class="f">KEEPING IT AS</label><select id="f-status"><option value="owned" ${v.status==='owned'?'selected':''}>On my shelf</option><option value="wishlist" ${v.status==='wishlist'?'selected':''}>Wishlist</option></select></div></div>
+    <label class="f">TITLE</label><input type="text" id="f-title" value="${esc(v.title)}">
+    <label class="f">ARTIST / AUTHOR / DIRECTOR</label><input type="text" id="f-creator" value="${esc(v.creator)}">
+    <div class="two"><div><label class="f">YEAR</label><input type="text" id="f-year" inputmode="numeric" value="${esc(v.year)}"></div><div><label class="f">EDITION</label><input type="text" id="f-edition" value="${esc(v.edition)}" placeholder="Blu-ray, 180g, paperback"></div></div>
+    <label class="f">COVER IMAGE URL</label><input type="text" id="f-cover" value="${esc(v.cover)}" placeholder="optional">
+    <label class="f">NOTES</label><textarea id="f-notes" rows="2">${esc(v.notes)}</textarea>
+    <div class="row" style="margin-top:16px;justify-content:space-between"><div>${isNew?'':`<button class="btn danger" data-action="del" data-id="${v.id}">Delete</button>`}</div><button class="btn pri" data-action="save" data-id="${esc(v.id)}">Save</button></div></div>`;
+  $('#modal').classList.add('on'); $('#modal').scrollTop = 0;
+  if(opts.focus !== false && isNew && !v.title) setTimeout(() => $('#f-title') && $('#f-title').focus(), 50);
+}
+const closeModal = () => { $('#modal').classList.remove('on'); $('#modal').innerHTML=''; };
+const val = id => ($('#'+id) ? $('#'+id).value.trim() : '');
+async function saveForm(id){
+  const it = { id: id || uid(), format:val('f-format'), status:val('f-status'), title:val('f-title'), creator:val('f-creator'), year:val('f-year'), barcode:val('f-barcode').replace(/\s/g,''), edition:val('f-edition'), cover:val('f-cover'), notes:val('f-notes') };
+  if(!it.title){ toast('Please add a title.'); return; }
+  const prev = items.find(x => x.id === it.id); it.addedAt = prev ? prev.addedAt : Date.now();
+  if(!prev && it.status === 'owned'){
+    const dup = findMatches(it).filter(m => m.it.status==='owned' && (m.kind==='exact' || m.it.format===it.format));
+    if(dup.length && !confirm(`You already have “${dup[0].it.title}” (${FORMATS[dup[0].it.format]}). Add another copy anyway?`)) return;
+  }
+  await saveItem(it); closeModal(); toast(it.status==='wishlist' ? 'Added to wishlist ✦' : 'Saved to your shelf ✦'); setTab(state.tab);
+}
+async function formLookup(){
+  const msg = $('#lk-msg'), picks = $('#picks'); const bc = val('f-barcode'), t = val('f-title');
+  if(!bc && !t){ msg.textContent = 'Enter a barcode or title first.'; return; }
+  msg.innerHTML = '<span class="spin"></span>'; picks.innerHTML = '';
+  let c = bc ? await lookupBarcode(bc) : [];
+  if(!c.length && t) c = await searchText(t + (val('f-creator') ? ' ' + val('f-creator') : ''), val('f-format'));
+  msg.textContent = c.length ? 'Tap the right one:' : 'Nothing found. Fill it in by hand.';
+  state.formCands = c;
+  picks.innerHTML = c.slice(0,6).map((x,i) => `<div class="cand" data-action="pick" data-idx="${i}">${coverHTML(x)}<div class="m"><b>${esc(x.title)}</b><div class="s">${esc(x.creator||'')}${x.year?' · '+esc(x.year):''}</div>${x.format?fmtPill(x.format):''}</div></div>`).join('');
+}
+
+/* ---------- backup ---------- */
+const payload = () => JSON.stringify({ app:'lilac-archive', version:1, exported:new Date().toISOString(), items }, null, 1);
+function download(name, text, type){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+async function importData(text){
+  let d; try { d = JSON.parse(text); } catch { toast('That file is not a valid backup.'); return; }
+  const list = Array.isArray(d) ? d : d.items; if(!Array.isArray(list)){ toast('No items found in that file.'); return; }
+  const replace = items.length && confirm(`Found ${list.length} items.\n\nOK = replace what is here\nCancel = merge them in`);
+  if(replace){ await dbClear(); items = []; }
+  let n = 0;
+  for(const raw of list){ if(!raw || !raw.title) continue; const it = { ...raw, id: raw.id || uid(), status: raw.status || 'owned', format: raw.format || 'cd', addedAt: raw.addedAt || Date.now() };
+    const cur = items.find(x => x.id === it.id); if(cur && (cur.updatedAt||0) >= (it.updatedAt||0)) continue; await saveItem({ ...it, updatedAt: it.updatedAt || Date.now() }); n++; }
+  toast(`Loaded ${n} items ✦`); renderMore();
+}
+const b64 = s => { let bin=''; new TextEncoder().encode(s).forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
+const unb64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
+function ghCfg(){ const c = { owner:val('gh-owner'), repo:val('gh-repo'), path:val('gh-path') || 'lilac-archive-backup.json', token:val('gh-token') }; lsSet('lilac-gh', c); return c; }
+async function ghReq(c, method, body){
+  const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}`, { method, headers:{ Authorization:'Bearer '+c.token, Accept:'application/vnd.github+json', 'Content-Type':'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  if(r.status === 404 && method === 'GET') return null;
+  if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'GitHub refused the token (check permissions).' : r.status === 404 ? 'Repo not found.' : 'GitHub error ' + r.status);
+  return r.json();
+}
+async function ghBackup(){
+  const c = ghCfg(); if(!c.owner || !c.repo || !c.token){ toast('Fill in username, repo and token first.'); return; }
+  toast('Backing up…');
+  try { const cur = await ghReq(c, 'GET'); await ghReq(c, 'PUT', { message:"Irisa's Archives backup " + new Date().toISOString(), content:b64(payload()), ...(cur ? { sha:cur.sha } : {}) }); lsSet('lilac-backup', Date.now()); toast('Backed up to GitHub ✦'); renderMore(); }
+  catch(e){ toast(e.message || 'Backup failed.'); }
+}
+async function ghRestore(){
+  const c = ghCfg(); if(!c.owner || !c.repo || !c.token){ toast('Fill in username, repo and token first.'); return; }
+  try { const cur = await ghReq(c, 'GET'); if(!cur){ toast('No backup file found yet.'); return; } await importData(unb64(cur.content)); }
+  catch(e){ toast(e.message || 'Restore failed.'); }
+}
+const csvCell = s => '"' + String(s ?? '').replace(/"/g,'""') + '"';
+function exportCSV(){ const cols = ['status','format','title','creator','year','edition','barcode','notes']; download('lilac-archive.csv', [cols.join(','), ...items.map(i => cols.map(c => csvCell(i[c])).join(','))].join('\n'), 'text/csv'); }
+
+/* ---------- events ---------- */
+document.addEventListener('click', async e => {
+  const tab = e.target.closest('[data-tab]'); if(tab){ setTab(tab.dataset.tab); return; }
+  const fl = e.target.closest('[data-filter]'); if(fl){ state.filter = fl.dataset.filter; renderShelf(); return; }
+  const a = e.target.closest('[data-action]'); if(!a) return; const act = a.dataset.action, id = a.dataset.id;
+  switch(act){
+    case 'add': openForm({ status:'owned' }); break;
+    case 'add-wish': openForm({ status:'wishlist' }); break;
+    case 'edit': openForm(items.find(x => x.id === id)); break;
+    case 'close': closeModal(); break;
+    case 'save': saveForm(id); break;
+    case 'del': if(confirm('Delete this entry?')){ await removeItem(id); closeModal(); setTab(state.tab); toast('Removed'); } break;
+    case 'got': { const it = items.find(x => x.id === id); it.status = 'owned'; await saveItem(it); toast('Added to your shelf ✦'); renderWish(); break; }
+    case 'goto-more': setTab('more'); break;
+    case 'shop-go': state.shopQ = $('#shopq').value; runShop(); break;
+    case 'shop-scan': openScanner(code => { state.shopQ = code; $('#shopq').value = code; runShop(); }); break;
+    case 'scan-close': scanStop && scanStop(); break;
+    case 'form-scan': openScanner(code => { const f = $('#f-barcode'); if(f){ f.value = code; formLookup(); } }); break;
+    case 'form-lookup': formLookup(); break;
+    case 'pick': { const c = state.formCands[+a.dataset.idx]; if(!c) break; $('#f-title').value = c.title||''; $('#f-creator').value = c.creator||''; $('#f-year').value = c.year||''; if(c.barcode && !val('f-barcode')) $('#f-barcode').value = c.barcode; if(c.cover) $('#f-cover').value = c.cover; if(c.format) $('#f-format').value = c.format; $('#picks').innerHTML=''; $('#lk-msg').textContent = 'Filled in ✦'; break; }
+    case 'cand-add': {
+      const c = { ...state.cands[+a.dataset.idx] }; if(!c.format){ const s = $(`select[data-fmt="${a.dataset.idx}"]`); c.format = s ? s.value : 'cd'; }
+      const st = a.dataset.st; const it = { id:uid(), status:st, format:c.format, title:c.title, creator:c.creator, year:c.year, barcode:c.barcode, cover:c.cover, edition:'', notes:'', addedAt:Date.now() };
+      await saveItem(it); toast(st==='wishlist' ? 'Added to wishlist ✦' : 'Added to your shelf ✦'); paintShop(); break; }
+    case 'add-code': { const s = state.shop||{}; openForm({ status:a.dataset.st, barcode:s.code||'', title:a.dataset.title||'' }); break; }
+    case 'export': download(`lilac-archive-${new Date().toISOString().slice(0,10)}.json`, payload(), 'application/json'); lsSet('lilac-backup', Date.now()); toast('Backup downloaded ✦'); renderMore(); break;
+    case 'import': $('#importfile').click(); break;
+    case 'csv': exportCSV(); break;
+    case 'gh-backup': ghBackup(); break;
+    case 'gh-restore': ghRestore(); break;
+    case 'wipe': if(confirm('Erase your whole library from this device? Download a backup first!') && confirm('Really erase everything?')){ await dbClear(); items = []; toast('Erased'); renderMore(); } break;
+  }
+});
+document.addEventListener('change', e => {
+  if(e.target.id === 'importfile' && e.target.files[0]){ const r = new FileReader(); r.onload = () => importData(r.result); r.readAsText(e.target.files[0]); e.target.value=''; }
+  if(e.target.id === 'sortsel'){ state.sort = e.target.value; fillGrid(); }
+});
+let dt; document.addEventListener('input', e => {
+  if(e.target.id === 'shelfq'){ clearTimeout(dt); dt = setTimeout(() => { state.q = e.target.value; fillGrid(); }, 120); }
+  if(e.target.id === 'shopq'){ state.shopQ = e.target.value; }
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && e.target.id === 'shopq'){ e.preventDefault(); state.shopQ = e.target.value; runShop(); e.target.blur(); }
+  if(e.key === 'Escape'){ scanStop ? scanStop() : closeModal(); }
+});
+$('#modal').addEventListener('mousedown', e => { if(e.target.id === 'modal') closeModal(); });
+
+/* ---------- boot ---------- */
+(async function(){
+  buildSky();
+  db = await openDB(); if(!db) memOnly = true;
+  try { items = await dbAll(); } catch { items = []; }
+  if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  const start = new URLSearchParams(location.search).get('tab'); setTab(['shelf','shop','wish','more'].includes(start) ? start : 'shelf');
+  window.__lilac = { get items(){ return items; }, verdict, findMatches, norm };
+})();
+</script>
+</body>
+</html>
