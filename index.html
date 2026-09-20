@@ -273,7 +273,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 const DBG = { on: lsGet('lilac-debug', false), rows: [] };
 function dbg(e){ e.t = new Date().toLocaleTimeString([], { hour12:false }); DBG.rows.unshift(e); if(DBG.rows.length > 300) DBG.rows.pop(); updDbgPill(); }
 function updDbgPill(){ const p = document.getElementById('dbgpill'); if(!p) return; p.style.display = DBG.on ? 'flex' : 'none'; p.textContent = 'Debug (' + DBG.rows.length + ')'; }
-const logHeader = () => `Irisa's Archives debug log\n${new Date().toString()}\nOnline: ${navigator.onLine}\nSecure page: ${window.isSecureContext}\nBarcodeDetector: ${'BarcodeDetector' in window}\nBrowser: ${navigator.userAgent}\nKeys set: rawg=${!!lsGet('lilac-keys',{}).rawg} tmdb=${!!lsGet('lilac-keys',{}).tmdb}\n\n`;
+const logHeader = () => `Irisa's Archives debug log\n${new Date().toString()}\nOnline: ${navigator.onLine}\nSecure page: ${window.isSecureContext}\nBarcodeDetector: ${'BarcodeDetector' in window}\nBrowser: ${navigator.userAgent}\nKeys set: rawg=${!!lsGet('lilac-keys',{}).rawg} tmdb=${!!lsGet('lilac-keys',{}).tmdb} gbooks=${!!lsGet('lilac-keys',{}).gbooks}\n\n`;
 function logText(){ return DBG.rows.slice().reverse().map(r => `[${r.t}] ${r.label || 'info'} ${r.ok === false ? 'FAIL' : (r.ok ? 'ok' : '')} ${r.status ? 'HTTP ' + r.status : ''} ${r.ms != null ? r.ms + 'ms' : ''}\n  ${r.url || ''}\n  ${r.note || ''}${r.preview ? '\n  -> ' + r.preview : ''}`).join('\n\n'); }
 
 
@@ -359,18 +359,38 @@ function tidy(list){
 }
 const gameHint = t => /\b(ps[1-5]|playstation|xbox|nintendo|switch|wii|3ds|ds|gamecube|n64|sega|genesis|dreamcast|psp|vita|steam)\b/i.test(t || '');
 
+const PLAT = /\b(nintendo switch|playstation [2-5]|ps[1-5]|xbox series x|xbox one|xbox 360|xbox|wii u|wii|nintendo 3ds|3ds|nintendo ds|gamecube|nintendo 64|n64|sega genesis|dreamcast|psp|ps vita)\b/i;
+function cleanUpcTitle(raw, fmt){
+  let t = String(raw || '').trim(), edition = '';
+  if(fmt === 'movie'){ const m = t.match(/\b(blu-?ray|4k ultra hd|4k uhd|uhd|dvd|vhs)\b/i); if(m) edition = /blu/i.test(m[1]) ? 'Blu-ray' : /4k|uhd/i.test(m[1]) ? '4K' : m[1].toUpperCase(); }
+  if(fmt === 'game'){ const m = t.match(PLAT); if(m) edition = m[1]; t = t.replace(PLAT, ' '); }
+  t = t.replace(/[\(\[][^\)\]]*(blu-?ray|dvd|4k|uhd|digital|widescreen|edition|steelbook|combo)[^\)\]]*[\)\]]/ig, ' ')
+       .replace(/\b(blu-?ray|dvd|4k ultra hd|widescreen|full screen)\b/ig, ' ')
+       .replace(/\s{2,}/g, ' ').replace(/^[\s\-–:,]+|[\s\-–:,]+$/g, '').trim();
+  return { title: t || String(raw || ''), edition };
+}
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
 async function lookupBarcode(code){
+  const keys = lsGet('lilac-keys', {});
   const digits = String(code).replace(/\D/g, ''), clean = String(code).replace(/[^\dXx]/g, '');
   const isbn13 = /^(978|979)\d{10}$/.test(digits), isbn10 = /^\d{9}[\dXx]$/.test(clean);
   const out = [], jobs = [];
-  dbg({ label:'Barcode lookup', note: code + ' - ' + (isbn13 || isbn10 ? 'looks like a book ISBN, asking Open Library + Google Books' : 'not a book ISBN, asking MusicBrainz + UPC database') });
+  dbg({ label:'Barcode lookup', note: code + ' - ' + (isbn13 || isbn10 ? 'looks like a book ISBN, asking Open Library' : 'not a book ISBN, asking MusicBrainz, iTunes and the product database') });
   if(isbn13 || isbn10){
     const id = isbn13 ? digits : clean.toUpperCase();
-    jobs.push(jfetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${id}&format=json&jscmd=data`, 9000, {}, 'Open Library').then(d => {
-      const b = d['ISBN:' + id]; if(!b) return;
-      out.push({ format:'book', title:b.title, creator:(b.authors||[]).map(a=>a.name).join(', '), year:(String(b.publish_date||'').match(/\d{4}/)||[''])[0], barcode:id, cover:httpsUrl(b.cover && (b.cover.medium || b.cover.large)), src:'Open Library' });
-    }).catch(() => {}));
-    jobs.push(jfetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${id}`, 9000, {}, 'Google Books').then(d => {
+    jobs.push((async () => {
+      let got = false;
+      try { const d = await jfetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${id}&format=json&jscmd=data`, 9000, {}, 'Open Library'); const b = d['ISBN:' + id];
+        if(b){ got = true; out.push({ format:'book', title:b.title, creator:(b.authors||[]).map(a=>a.name).join(', '), year:(String(b.publish_date||'').match(/\d{4}/)||[''])[0], barcode:id, cover:httpsUrl(b.cover && (b.cover.medium || b.cover.large)) || `https://covers.openlibrary.org/b/isbn/${id}-M.jpg`, src:'Open Library' }); } } catch {}
+      if(!got){ try { const d = await jfetch(`https://openlibrary.org/search.json?isbn=${id}&fields=title,author_name,first_publish_year,cover_i&limit=1`, 9000, {}, 'Open Library (search)');
+        (d.docs || []).slice(0, 1).forEach(b => { got = true; out.push({ format:'book', title:b.title, creator:(b.author_name||[]).slice(0,2).join(', '), year:b.first_publish_year||'', barcode:id, cover:b.cover_i ? `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg` : `https://covers.openlibrary.org/b/isbn/${id}-M.jpg`, src:'Open Library' }); }); } catch {} }
+      if(!got){ try { const d = await jfetch(`https://openlibrary.org/isbn/${id}.json`, 9000, {}, 'Open Library (edition)');
+        if(d && d.title){ let author = ''; const ak = d.authors && d.authors[0] && d.authors[0].key;
+          if(ak){ try { const a = await jfetch('https://openlibrary.org' + ak + '.json', 9000, {}, 'Open Library (author)'); author = a.name || ''; } catch {} }
+          out.push({ format:'book', title:d.title, creator:author, year:(String(d.publish_date||'').match(/\d{4}/)||[''])[0], barcode:id, cover:`https://covers.openlibrary.org/b/isbn/${id}-M.jpg`, src:'Open Library' }); } } catch {} }
+    })());
+    if(keys.gbooks) jobs.push(jfetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${id}&key=${encodeURIComponent(keys.gbooks)}`, 9000, {}, 'Google Books').then(d => {
       (d.items || []).slice(0, 1).forEach(it => { const v = it.volumeInfo || {};
         out.push({ format:'book', title:(v.title || '') + (v.subtitle ? ': ' + v.subtitle : ''), creator:(v.authors||[]).join(', '), year:(String(v.publishedDate||'').match(/\d{4}/)||[''])[0], barcode:id, cover:httpsUrl(v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail)), src:'Google Books' }); });
     }).catch(() => {}));
@@ -380,13 +400,20 @@ async function lookupBarcode(code){
     jobs.push(mbGet(`https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&fmt=json&limit=3`).then(d => {
       (d.releases || []).slice(0, 2).forEach(r => out.push({ format:mbFormat(r.media), title:r.title, creator:(r['artist-credit']||[]).map(a=>a.name).join(', '), year:(r.date||'').slice(0,4), barcode:digits, cover:`https://coverartarchive.org/release/${r.id}/front-250`, src:'MusicBrainz' }));
     }).catch(() => {}));
-    jobs.push(jfetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${digits}`, 9000, {}, 'UPC database').then(d => {
-      (d.items || []).slice(0, 1).forEach(p => {
-        const cat = (p.category || '').toLowerCase();
-        const fmt = /video game|game/.test(cat) || gameHint(p.title) ? 'game' : /movie|dvd|blu|film|video/.test(cat) ? 'movie' : /book/.test(cat) ? 'book' : null;
-        out.push({ format:fmt, title:p.title, creator: fmt === 'game' || fmt === 'movie' ? '' : (p.brand || ''), year:'', barcode:digits, cover:httpsUrl((p.images || [])[0]), src:'UPC database' });
-      });
+    jobs.push(jfetch(`https://itunes.apple.com/lookup?upc=${digits}&entity=album`, 9000, {}, 'iTunes (barcode)').then(d => {
+      (d.results || []).filter(r => r.collectionName).slice(0, 1).forEach(r => out.push({ format:null, title:r.collectionName, creator:r.artistName || '', year:(r.releaseDate||'').slice(0,4), barcode:digits, cover:(r.artworkUrl100||'').replace('100x100','400x400'), src:'iTunes' }));
     }).catch(() => {}));
+    const upcUrl = `https://api.upcitemdb.com/prod/trial/lookup?upc=${digits}`;
+    jobs.push(jfetch(upcUrl, 9000, {}, 'UPC database')
+      .catch(() => jfetch(PROXY + encodeURIComponent(upcUrl), 14000, {}, 'UPC database (via proxy)'))
+      .then(d => {
+        (d.items || []).slice(0, 1).forEach(p => {
+          const cat = (p.category || '').toLowerCase();
+          const fmt = /video game|game/.test(cat) || gameHint(p.title) ? 'game' : /movie|dvd|blu|film|video/.test(cat) ? 'movie' : /book/.test(cat) ? 'book' : null;
+          const c = cleanUpcTitle(p.title, fmt);
+          out.push({ format:fmt, title:c.title, edition:c.edition, creator: fmt === 'game' || fmt === 'movie' ? '' : (p.brand || ''), year:'', barcode:digits, cover:httpsUrl((p.images || [])[0]), src:'UPC database' });
+        });
+      }).catch(() => {}));
   }
   await Promise.all(jobs);
   const res = tidy(out);
@@ -402,7 +429,7 @@ async function searchText(q, only){
     jobs.push(jfetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=5&fields=title,author_name,first_publish_year,cover_i,isbn`, 9000, {}, 'Open Library').then(d => {
       (d.docs || []).forEach(b => out.push({ format:'book', title:b.title, creator:(b.author_name||[]).slice(0,2).join(', '), year:b.first_publish_year||'', barcode:(b.isbn||[]).find(i=>i.length===13)||'', cover:b.cover_i?`https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`:'', src:'Open Library' }));
     }).catch(() => {}));
-    jobs.push(jfetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&printType=books`, 9000, {}, 'Google Books').then(d => {
+    if(keys.gbooks) jobs.push(jfetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=5&printType=books&key=${encodeURIComponent(keys.gbooks)}`, 9000, {}, 'Google Books').then(d => {
       (d.items || []).forEach(it => { const v = it.volumeInfo || {}; const i13 = (v.industryIdentifiers || []).find(i => i.type === 'ISBN_13');
         out.push({ format:'book', title:v.title, creator:(v.authors||[]).slice(0,2).join(', '), year:(String(v.publishedDate||'').match(/\d{4}/)||[''])[0], barcode:i13 ? i13.identifier : '', cover:httpsUrl(v.imageLinks && (v.imageLinks.thumbnail || v.imageLinks.smallThumbnail)), src:'Google Books' }); });
     }).catch(() => {}));
@@ -634,7 +661,8 @@ function renderMore(){
   <div class="card" style="margin-top:14px"><h3>Reading size</h3><p class="hint" style="margin:4px 0 8px">Make everything bigger if it is hard to read.</p><div class="row tight">${[[1,'Normal'],[1.15,'Large'],[1.3,'Extra large']].map(([v,l]) => `<button class="btn sm ${Math.abs(lsGet('lilac-scale',1.15)-v)<.01?'pri':''}" data-action="scale" data-v="${v}">${l}</button>`).join('')}</div></div>
   <div class="card" style="margin-top:14px"><h3>Lookup keys (optional, free)</h3><p class="hint" style="margin:4px 0 0">Books, CDs and vinyl look up by barcode without any key. Searching <b>games</b> by title needs a free RAWG key. A TMDB key makes film search better.</p>
     <label class="f">RAWG KEY (GAMES)</label><input type="text" id="k-rawg" value="${esc(lsGet('lilac-keys',{}).rawg||'')}" autocapitalize="off" autocomplete="off" placeholder="from rawg.io/apidocs">
-    <label class="f">TMDB KEY (FILMS)</label><input type="text" id="k-tmdb" value="${esc(lsGet('lilac-keys',{}).tmdb||'')}" autocapitalize="off" autocomplete="off" placeholder="from themoviedb.org, Settings, API"></div>
+    <label class="f">TMDB KEY (FILMS)</label><input type="text" id="k-tmdb" value="${esc(lsGet('lilac-keys',{}).tmdb||'')}" autocapitalize="off" autocomplete="off" placeholder="from themoviedb.org, Settings, API">
+    <label class="f">GOOGLE BOOKS KEY (BACKUP FOR BOOKS)</label><input type="text" id="k-gbooks" value="${esc(lsGet('lilac-keys',{}).gbooks||'')}" autocapitalize="off" autocomplete="off" placeholder="optional, Google Cloud console"></div>
   <div class="card" style="margin-top:14px"><h3>Troubleshooting</h3><p class="hint" style="margin:4px 0 8px">Shows exactly what each database answers when you scan or search, so problems are easy to spot.</p>
     <div class="row tight"><button class="btn sm ${DBG.on?'pri':''}" data-action="dbg-toggle">Debug mode: ${DBG.on?'ON':'OFF'}</button><button class="btn sm" data-action="dbg-test">Test connections</button><button class="btn sm" data-action="dbg-open">View log</button></div></div>
   <details class="card" style="margin-top:14px"><summary>Install on your phone</summary><p>Open this page in Safari (iPhone) or Chrome (Android), then choose <b>Add to Home Screen</b>. It will open like an app and work offline.</p></details>
@@ -677,7 +705,7 @@ async function saveForm(id){
 }
 function applyCand(c){
   const set = (id, v) => { const el = $('#' + id); if(el && v && !el.value.trim()) el.value = v; };
-  set('f-title', c.title); set('f-creator', c.creator); set('f-year', c.year); set('f-cover', c.cover); set('f-barcode', c.barcode);
+  set('f-title', c.title); set('f-creator', c.creator); set('f-year', c.year); set('f-cover', c.cover); set('f-barcode', c.barcode); set('f-edition', c.edition);
   if(c.format && $('#f-format')) $('#f-format').value = c.format;
 }
 function pickHTML(list){ return list.slice(0, 6).map((x, i) => `<div class="cand" data-action="pick" data-idx="${i}">${coverHTML(x)}<div class="m"><b>${esc(x.title)}</b><div class="s">${esc([x.creator, x.year, x.note].filter(Boolean).join(' · '))}</div>${x.format ? fmtPill(x.format) : ''} <span class="hint">${esc(x.src || '')}</span></div></div>`).join(''); }
@@ -725,20 +753,22 @@ function openDebug(){
 async function testConnections(){
   const box = $('#dbgtests'); if(!box) return; const keys = lsGet('lilac-keys', {});
   const tests = [
-    ['Open Library (books)', 'https://openlibrary.org/api/books?bibkeys=ISBN:9780140328721&format=json&jscmd=data', j => !!j['ISBN:9780140328721']],
-    ['Google Books (books)', 'https://www.googleapis.com/books/v1/volumes?q=isbn:9780140328721', j => (j.totalItems || 0) > 0],
-    ['MusicBrainz (CDs, vinyl)', 'https://musicbrainz.org/ws/2/release/?query=release:%22abbey%20road%22%20AND%20artist:beatles&fmt=json&limit=1', j => (j.releases || []).length > 0],
-    ['iTunes (films)', 'https://itunes.apple.com/search?term=labyrinth&media=movie&limit=1', j => (j.resultCount || 0) > 0],
-    ['UPC database (any barcode)', 'https://api.upcitemdb.com/prod/trial/lookup?upc=4002293401102', j => (j.items || []).length > 0]
+    ['Open Library (book by ISBN)', 'https://openlibrary.org/search.json?isbn=9780140328721&limit=1', j => (j.numFound || 0) > 0],
+    ['Open Library (edition record)', 'https://openlibrary.org/isbn/9780140328721.json', j => !!j.title],
+    ['MusicBrainz (CDs, vinyl)', 'https://musicbrainz.org/ws/2/release/?query=release:%22abbey%20road%22%20AND%20artist:beatles&fmt=json&limit=1', j => (j.releases || []).length > 0, true],
+    ['iTunes (film titles)', 'https://itunes.apple.com/search?term=toy%20story&media=movie&limit=1', j => (j.resultCount || 0) > 0],
+    ['iTunes (music by barcode)', 'https://itunes.apple.com/lookup?upc=602547924290&entity=album', j => (j.resultCount || 0) > 0],
+    ['Product barcodes (films, games) via proxy', PROXY + encodeURIComponent('https://api.upcitemdb.com/prod/trial/lookup?upc=4002293401102'), j => (j.items || []).length > 0]
   ];
+  if(keys.gbooks) tests.push(['Google Books', `https://www.googleapis.com/books/v1/volumes?q=isbn:9780140328721&key=${encodeURIComponent(keys.gbooks)}`, j => (j.totalItems || 0) > 0]);
   if(keys.rawg) tests.push(['RAWG (games)', `https://api.rawg.io/api/games?key=${encodeURIComponent(keys.rawg)}&search=zelda&page_size=1`, j => (j.results || []).length > 0]);
   if(keys.tmdb) tests.push(['TMDB (films)', `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(keys.tmdb)}&query=labyrinth`, j => (j.results || []).length > 0]);
   const rows = []; const paint = () => { box.innerHTML = '<div class="card" style="padding:10px 14px">' + rows.join('') + '</div>'; };
   dbg({ label:'Connection test', note:'Started' });
-  for(const [name, url, ok] of tests){
+  for(const [name, url, ok, viaMb] of tests){
     rows.push(`<div class="testrow"><span class="spin"></span> ${esc(name)}…</div>`); paint();
     const t0 = performance.now();
-    try { const j = await jfetch(url, 9000, {}, name); rows[rows.length - 1] = `<div class="testrow"><b class="ok">OK</b> <span>${esc(name)} <span class="hint">${Math.round(performance.now() - t0)} ms${ok(j) ? '' : ', reachable but the test item was not found'}</span></span></div>`; }
+    try { const j = viaMb ? await mbGet(url) : await jfetch(url, name.includes('proxy') ? 14000 : 9000, {}, name); rows[rows.length - 1] = `<div class="testrow"><b class="ok">OK</b> <span>${esc(name)} <span class="hint">${Math.round(performance.now() - t0)} ms${ok(j) ? '' : ', reachable but the test item was not found'}</span></span></div>`; }
     catch(e){ rows[rows.length - 1] = `<div class="testrow"><b class="no">FAIL</b> <span>${esc(name)}<br><span class="hint">${esc(e.message)}. ${e.message === 'Failed to fetch' ? 'Blocked by the browser or no internet.' : ''}</span></span></div>`; }
     paint(); renderDebugList();
   }
@@ -820,10 +850,10 @@ document.addEventListener('click', async e => {
     case 'scan-close': scanStop && scanStop(); break;
     case 'form-scan': openScanner(code => { const f = $('#f-barcode'); if(f){ f.value = code; dbg({ label:'Scanner', note:'Camera read: ' + code }); formLookup(true); } }); break;
     case 'form-lookup': formLookup(false); break;
-    case 'pick': { const c = state.formCands[+a.dataset.idx]; if(!c) break; $('#f-title').value = c.title||''; $('#f-creator').value = c.creator||''; $('#f-year').value = c.year||''; if(c.barcode && !val('f-barcode')) $('#f-barcode').value = c.barcode; if(c.cover) $('#f-cover').value = c.cover; if(c.format) $('#f-format').value = c.format; $('#picks').innerHTML=''; $('#lk-msg').textContent = 'Filled in ✦'; break; }
+    case 'pick': { const c = state.formCands[+a.dataset.idx]; if(!c) break; $('#f-title').value = c.title||''; $('#f-creator').value = c.creator||''; $('#f-year').value = c.year||''; if(c.barcode && !val('f-barcode')) $('#f-barcode').value = c.barcode; if(c.edition) $('#f-edition').value = c.edition; if(c.cover) $('#f-cover').value = c.cover; if(c.format) $('#f-format').value = c.format; $('#picks').innerHTML=''; $('#lk-msg').textContent = 'Filled in ✦'; break; }
     case 'cand-add': {
       const c = { ...state.cands[+a.dataset.idx] }; if(!c.format){ const s = $(`select[data-fmt="${a.dataset.idx}"]`); c.format = s ? s.value : 'cd'; }
-      const st = a.dataset.st; const it = { id:uid(), status:st, format:c.format, title:c.title, creator:c.creator, year:c.year, barcode:c.barcode, cover:c.cover, edition:'', notes:'', addedAt:Date.now() };
+      const st = a.dataset.st; const it = { id:uid(), status:st, format:c.format, title:c.title, creator:c.creator, year:c.year, barcode:c.barcode, cover:c.cover, edition:c.edition || '', notes:'', addedAt:Date.now() };
       await saveItem(it); toast(st==='wishlist' ? 'Added to wishlist ✦' : 'Added to your shelf ✦'); paintShop(); break; }
     case 'add-code': { const s = state.shop||{}; openForm({ status:a.dataset.st, barcode:s.code||'', title:a.dataset.title||'' }); break; }
     case 'export': download(`lilac-archive-${new Date().toISOString().slice(0,10)}.json`, payload(), 'application/json'); lsSet('lilac-backup', Date.now()); toast('Backup downloaded ✦'); renderMore(); break;
@@ -836,7 +866,7 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('change', e => {
   if(e.target.id === 'f-barcode' && e.target.value.replace(/\D/g, '').length >= 8){ formLookup(true); }
-  if(e.target.id === 'k-rawg' || e.target.id === 'k-tmdb'){ lsSet('lilac-keys', { rawg: ($('#k-rawg') || {}).value ? $('#k-rawg').value.trim() : '', tmdb: ($('#k-tmdb') || {}).value ? $('#k-tmdb').value.trim() : '' }); toast('Key saved'); }
+  if(['k-rawg', 'k-tmdb', 'k-gbooks'].includes(e.target.id)){ const g = id => ($('#' + id) || {}).value ? $('#' + id).value.trim() : ''; lsSet('lilac-keys', { rawg:g('k-rawg'), tmdb:g('k-tmdb'), gbooks:g('k-gbooks') }); toast('Key saved'); }
   if(e.target.id === 'importfile' && e.target.files[0]){ const r = new FileReader(); r.onload = () => importData(r.result); r.readAsText(e.target.files[0]); e.target.value=''; }
   if(e.target.id === 'sortsel'){ state.sort = e.target.value; fillGrid(); }
 });
