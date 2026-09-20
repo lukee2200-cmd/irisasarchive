@@ -370,6 +370,17 @@ function cleanUpcTitle(raw, fmt){
   return { title: t || String(raw || ''), edition };
 }
 const PROXY = 'https://api.allorigins.win/raw?url=';
+// Free relays are slow and flaky, so ask several at once and use whichever answers first.
+const RELAYS = [
+  ['allorigins', u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u)],
+  ['corsproxy', u => 'https://corsproxy.io/?url=' + encodeURIComponent(u)],
+  ['codetabs', u => 'https://api.codetabs.com/v1/proxy/?quest=' + encodeURIComponent(u)]
+];
+function viaRelay(url, label, ms){
+  const tries = RELAYS.map(([n, f]) => jfetch(f(url), ms || 16000, {}, (label || 'Relay') + ' [' + n + ']'));
+  if(typeof Promise.any === 'function') return Promise.any(tries).catch(() => { throw new Error('All relays failed or timed out'); });
+  return new Promise((res, rej) => { let left = tries.length; tries.forEach(p => p.then(res, () => { if(--left === 0) rej(new Error('All relays failed or timed out')); })); });
+}
 
 async function lookupBarcode(code){
   const keys = lsGet('lilac-keys', {});
@@ -405,7 +416,7 @@ async function lookupBarcode(code){
     }).catch(() => {}));
     const upcUrl = `https://api.upcitemdb.com/prod/trial/lookup?upc=${digits}`;
     jobs.push(jfetch(upcUrl, 9000, {}, 'UPC database')
-      .catch(() => jfetch(PROXY + encodeURIComponent(upcUrl), 14000, {}, 'UPC database (via proxy)'))
+      .catch(() => viaRelay(upcUrl, 'UPC database (via relay)'))
       .then(d => {
         (d.items || []).slice(0, 1).forEach(p => {
           const cat = (p.category || '').toLowerCase();
@@ -758,17 +769,17 @@ async function testConnections(){
     ['MusicBrainz (CDs, vinyl)', 'https://musicbrainz.org/ws/2/release/?query=release:%22abbey%20road%22%20AND%20artist:beatles&fmt=json&limit=1', j => (j.releases || []).length > 0, true],
     ['iTunes (film titles)', 'https://itunes.apple.com/search?term=toy%20story&media=movie&limit=1', j => (j.resultCount || 0) > 0],
     ['iTunes (music by barcode)', 'https://itunes.apple.com/lookup?upc=602547924290&entity=album', j => (j.resultCount || 0) > 0],
-    ['Product barcodes (films, games) via proxy', PROXY + encodeURIComponent('https://api.upcitemdb.com/prod/trial/lookup?upc=4002293401102'), j => (j.items || []).length > 0]
+    ['Product barcodes (films, games) via relay', 'https://api.upcitemdb.com/prod/trial/lookup?upc=4002293401102', j => (j.items || []).length > 0, false, true]
   ];
   if(keys.gbooks) tests.push(['Google Books', `https://www.googleapis.com/books/v1/volumes?q=isbn:9780140328721&key=${encodeURIComponent(keys.gbooks)}`, j => (j.totalItems || 0) > 0]);
   if(keys.rawg) tests.push(['RAWG (games)', `https://api.rawg.io/api/games?key=${encodeURIComponent(keys.rawg)}&search=zelda&page_size=1`, j => (j.results || []).length > 0]);
   if(keys.tmdb) tests.push(['TMDB (films)', `https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(keys.tmdb)}&query=labyrinth`, j => (j.results || []).length > 0]);
   const rows = []; const paint = () => { box.innerHTML = '<div class="card" style="padding:10px 14px">' + rows.join('') + '</div>'; };
   dbg({ label:'Connection test', note:'Started' });
-  for(const [name, url, ok, viaMb] of tests){
+  for(const [name, url, ok, viaMb, relay] of tests){
     rows.push(`<div class="testrow"><span class="spin"></span> ${esc(name)}…</div>`); paint();
     const t0 = performance.now();
-    try { const j = viaMb ? await mbGet(url) : await jfetch(url, name.includes('proxy') ? 14000 : 9000, {}, name); rows[rows.length - 1] = `<div class="testrow"><b class="ok">OK</b> <span>${esc(name)} <span class="hint">${Math.round(performance.now() - t0)} ms${ok(j) ? '' : ', reachable but the test item was not found'}</span></span></div>`; }
+    try { const j = viaMb ? await mbGet(url) : relay ? await viaRelay(url, name) : await jfetch(url, 9000, {}, name); rows[rows.length - 1] = `<div class="testrow"><b class="ok">OK</b> <span>${esc(name)} <span class="hint">${Math.round(performance.now() - t0)} ms${ok(j) ? '' : ', reachable but the test item was not found'}</span></span></div>`; }
     catch(e){ rows[rows.length - 1] = `<div class="testrow"><b class="no">FAIL</b> <span>${esc(name)}<br><span class="hint">${esc(e.message)}. ${e.message === 'Failed to fetch' ? 'Blocked by the browser or no internet.' : ''}</span></span></div>`; }
     paint(); renderDebugList();
   }
