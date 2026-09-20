@@ -576,7 +576,13 @@ async function importData(text){
 }
 const b64 = s => { let bin=''; new TextEncoder().encode(s).forEach(x => bin += String.fromCharCode(x)); return btoa(bin); };
 const unb64 = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
-function ghCfg(){ const c = { owner:val('gh-owner'), repo:val('gh-repo'), path:val('gh-path') || 'lilac-archive-backup.json', token:val('gh-token') }; lsSet('lilac-gh', c); return c; }
+function ghCfg(){
+  let owner = val('gh-owner').replace(/^@/, ''), repo = val('gh-repo').replace(/^https?:\/\/github\.com\//i, '').replace(/\.git$/i, '').replace(/\/+$/, '');
+  if(repo.includes('/')){ const p = repo.split('/'); owner = owner || p[0]; repo = p[1]; }
+  const c = { owner, repo, path:val('gh-path') || 'lilac-archive-backup.json', token:val('gh-token').replace(/\s/g, '') };
+  lsSet('lilac-gh', c); return c;
+}
+function ghMissing(c){ const m = []; if(!c.owner) m.push('username'); if(!c.repo) m.push('repo name'); if(!c.token) m.push('token'); return m; }
 async function ghReq(c, method, body){
   const r = await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/contents/${c.path.split('/').map(encodeURIComponent).join('/')}`, { method, headers:{ Authorization:'Bearer '+c.token, Accept:'application/vnd.github+json', 'Content-Type':'application/json' }, body: body ? JSON.stringify(body) : undefined });
   if(r.status === 404 && method === 'GET') return null;
@@ -584,13 +590,13 @@ async function ghReq(c, method, body){
   return r.json();
 }
 async function ghBackup(){
-  const c = ghCfg(); if(!c.owner || !c.repo || !c.token){ toast('Fill in username, repo and token first.'); return; }
+  const c = ghCfg(); const mi = ghMissing(c); if(mi.length){ toast('Still missing: ' + mi.join(', ') + '.'); return; }
   toast('Backing up…');
   try { const cur = await ghReq(c, 'GET'); await ghReq(c, 'PUT', { message:"Irisa's Archives backup " + new Date().toISOString(), content:b64(payload()), ...(cur ? { sha:cur.sha } : {}) }); lsSet('lilac-backup', Date.now()); toast('Backed up to GitHub ✦'); renderMore(); }
   catch(e){ toast(e.message || 'Backup failed.'); }
 }
 async function ghRestore(){
-  const c = ghCfg(); if(!c.owner || !c.repo || !c.token){ toast('Fill in username, repo and token first.'); return; }
+  const c = ghCfg(); const mi = ghMissing(c); if(mi.length){ toast('Still missing: ' + mi.join(', ') + '.'); return; }
   try { const cur = await ghReq(c, 'GET'); if(!cur){ toast('No backup file found yet.'); return; } await importData(unb64(cur.content)); }
   catch(e){ toast(e.message || 'Restore failed.'); }
 }
